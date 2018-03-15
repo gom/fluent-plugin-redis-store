@@ -97,6 +97,8 @@ module Fluent::Plugin
                   operation_for_string(record)
                 when 'publish'
                   operation_for_publish(record)
+                when 'hll'
+                  operation_for_hll(record)
                 end
               rescue NoMethodError => e
                 puts e
@@ -173,6 +175,14 @@ module Fluent::Plugin
       key = get_key_from(record)
       value = get_value_from(record)
       @redis.publish key, value
+    end
+
+    def operation_for_hll(record)
+      key = get_key_from(record)
+      value = get_value_from(record)
+      @redis.pfadd key, value
+
+      set_key_expire key
     end
 
     def generate_zremrangebyrank_script(key, maxlen, order)

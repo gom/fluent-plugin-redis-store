@@ -53,6 +53,12 @@ class Redis
     $message = message
   end
 
+  def pfadd(key, message)
+    $command = :pfadd
+    $key = key
+    $message = message
+  end
+
   def quit
   end
 end
@@ -357,6 +363,26 @@ class RedisStoreOutputTest < Test::Unit::TestCase
 
     assert_equal :publish, $command
     assert_equal "george", $channel
+    assert_equal message, $message
+  end
+
+  def test_hll
+    config = %[
+      format_type plain
+      store_type  hll
+      key_path    user
+    ]
+
+    d = create_driver(config)
+    message = {
+      'user' => 'george'
+    }
+    d.run(default_tag: 'test') do
+      d.feed(get_time, message)
+    end
+
+    assert_equal :pfadd, $command
+    assert_equal "george", $key
     assert_equal message, $message
   end
 
